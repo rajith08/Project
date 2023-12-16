@@ -5,7 +5,7 @@ pipeline{
         maven 'Maven3'
     }
     environment{
-        APP_NAME = "Project_CICD"
+        APP_NAME = "project_cicd"
         RELEASE = "1.0.0"
         DOCKER_USER = "rajith08"
         DOCKER_PASS = 'dockerhub'
@@ -60,6 +60,21 @@ pipeline{
                         docker_image.push("${IMAGE_TAG}")
                         docker_image.push('latest')
                     }
+                }
+            }
+        }
+        stage("Trivy Scan"){
+            steps{
+                script{
+                    sh ('docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image rajith08/project_cicd:latest --no-progress --scanners vuln  --exit-code 0 --severity HIGH,CRITICAL --format table')
+                }
+            }
+        }
+        stage ('Cleanup Artifacts'){
+            steps{
+                script{
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker rmi ${IMAGE_NAME}:latest"
                 }
             }
         }
